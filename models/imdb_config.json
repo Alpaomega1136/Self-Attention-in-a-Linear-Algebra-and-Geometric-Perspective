@@ -1,0 +1,12 @@
+{
+  "max_vocab_size": 30000,
+  "max_seq_len": 256,
+  "d_model": 256,
+  "n_heads": 4,
+  "batch_size": 64,
+  "num_epochs": 5,
+  "lr": 0.0002,
+  "weight_decay": 0.01,
+  "best_val_acc": 0.8534,
+  "random_seed": 42
+}

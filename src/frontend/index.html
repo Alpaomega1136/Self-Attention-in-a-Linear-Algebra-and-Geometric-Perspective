@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IMDB Self-Attention Sentiment</title>
+  <style>
+    :root {
+      --bg: #0b1021;
+      --card: #0f172a;
+      --accent: #f97316;
+      --accent-2: #f59e0b;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border: rgba(255,255,255,0.07);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 10% 20%, rgba(249,115,22,0.08), transparent 30%), radial-gradient(circle at 90% 10%, rgba(245,158,11,0.08), transparent 28%), var(--bg);
+      color: var(--text);
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .card {
+      background: linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+      padding: 20px;
+      width: min(960px, 100%);
+    }
+    h1 { margin: 0 0 4px; font-size: 24px; letter-spacing: 0.5px; }
+    p.sub { margin: 0 0 16px; color: var(--muted); }
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      padding: 12px;
+      font-size: 15px;
+      outline: none;
+      resize: vertical;
+    }
+    button {
+      margin-top: 12px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(120deg, var(--accent), var(--accent-2));
+      color: #0f172a;
+      font-weight: 700;
+      box-shadow: 0 10px 30px rgba(249,115,22,0.25);
+      transition: transform 0.1s ease, box-shadow 0.2s ease;
+    }
+    button:active { transform: translateY(1px); box-shadow: 0 8px 22px rgba(249,115,22,0.2); }
+    .score { margin-top: 12px; color: #fbbf24; font-size: 16px; }
+    .attn { margin-top: 14px; overflow-x: auto; }
+    table { border-collapse: collapse; min-width: 400px; table-layout: fixed; }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 4px 6px;
+      font-size: 12px;
+      text-align: center;
+      background: rgba(255,255,255,0.02);
+      max-width: 120px;
+      word-break: break-word;
+      white-space: normal;
+    }
+    th {
+      background: rgba(249,115,22,0.12);
+      color: #fdba74;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .row-label {
+      background: rgba(255,255,255,0.04);
+      text-align: left;
+      max-width: 120px;
+      word-break: break-word;
+      white-space: normal;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>IMDB Self-Attention</h1>
+    <p class="sub">Model dilatih cepat pada subset IMDB di startup. Tulis ulasan untuk melihat prediksi dan matriks attention.</p>
+    <textarea id="txt" placeholder="This movie was amazing..."></textarea>
+    <button id="btn">Prediksi</button>
+    <div id="result" class="score"></div>
+    <div id="attn" class="attn"></div>
+  </div>
+
+  <script>
+    const btn = document.getElementById('btn');
+    const txt = document.getElementById('txt');
+    const resultEl = document.getElementById('result');
+    const attnEl = document.getElementById('attn');
+
+    btn.onclick = async () => {
+      const text = txt.value.trim();
+      if (!text) return;
+      resultEl.textContent = 'Memproses...';
+      attnEl.innerHTML = '';
+      try {
+        const res = await fetch('/api/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+        if (!res.ok) {
+          resultEl.textContent = 'Gagal memproses.';
+          return;
+        }
+        const data = await res.json();
+        resultEl.textContent = `Probabilitas positif: ${(data.prob_positive * 100).toFixed(1)}%`;
+        attnEl.innerHTML = renderAttention(data);
+      } catch (e) {
+        resultEl.textContent = `Error: ${e}`;
+      }
+    };
+
+    function renderAttention(data) {
+      const toks = data.tokens || [];
+      const w = data.attention || [];
+      if (!toks.length || !w.length) return '';
+      // Pastikan sinkron: pakai panjang minimum dari tokens dan matriks.
+      const n = Math.min(toks.length, w.length);
+      const headerToks = toks.slice(0, n);
+      const rowsWeights = w.slice(0, n).map(r => r.slice(0, n));
+
+      let maxW = 0;
+      rowsWeights.forEach(row => row.forEach(v => { if (v > maxW) maxW = v; }));
+      maxW = maxW || 1;
+      const header = headerToks.map(t => `<th>${t}</th>`).join('');
+      const rows = headerToks.map((qt, i) => {
+        const cells = rowsWeights[i].map(val => {
+          const op = Math.min(1, val / maxW);
+          const bg = `rgba(249,115,22,${op})`;
+          return `<td style="background:${bg};">${val.toFixed(3)}</td>`;
+        }).join('');
+        return `<tr><td class="row-label">${qt}</td>${cells}</tr>`;
+      }).join('');
+      return `<table><thead><tr><th></th>${header}</tr></thead><tbody>${rows}</tbody></table>`;
+    }
+  </script>
+</body>
+</html>

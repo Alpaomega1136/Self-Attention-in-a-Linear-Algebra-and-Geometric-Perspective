@@ -58,50 +58,6 @@ https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-review
 
 ---
 
-Training dataset: IMDB 50K reviews
-
-Test accuracy: 86.18%
-
-Strong performance on:
-
-Long reviews
-
-Contrastive sentences
-
-Subtle sentiment expressions
-
-Theoretical Foundation
-
-This project is grounded in:
-
-Vector spaces
-
-Matrix multiplication
-
-Dot products as similarity measures
-
-Linear projections
-
-Geometric interpretation of attention weights
-
-Limitations
-
-Not a generative model
-
-No causal masking for next-token prediction
-
-Smaller scale compared to real-world LLMs
-
-Designed for educational and analytical purposes
-
-References
-
-Vaswani et al., Attention Is All You Need, 2017
-
-IMDB Dataset of 50K Movie Reviews – Kaggle
-
-STEI-ITB Linear Algebra & Geometry Lecture Notes
-
 Author
 
 Raymond Jonathan Dwi Putra Julianto
