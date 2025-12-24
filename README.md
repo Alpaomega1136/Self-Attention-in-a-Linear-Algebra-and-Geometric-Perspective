@@ -53,7 +53,7 @@ https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-review
 │ └── server.py
 ├── index.html
 ├── README.md
-└── Makalah_Algeo.pdf
+└── 13524059_Raymond Jonathan DPJ_Makalah ALGEO.pdf
 
 
 ---

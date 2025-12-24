@@ -133,7 +133,6 @@
       const toks = data.tokens || [];
       const w = data.attention || [];
       if (!toks.length || !w.length) return '';
-      // Pastikan sinkron: pakai panjang minimum dari tokens dan matriks.
       const n = Math.min(toks.length, w.length);
       const headerToks = toks.slice(0, n);
       const rowsWeights = w.slice(0, n).map(r => r.slice(0, n));

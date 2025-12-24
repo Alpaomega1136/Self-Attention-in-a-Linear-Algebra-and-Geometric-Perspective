@@ -37,12 +37,9 @@ def load_vocab(path: Path = VOCAB_PATH) -> dict:
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
-
+# Blok multihead attention + FFN dengan residual, LayerNorm, dropout.
+# Attention(Q, K, V) = softmax(Q K^T / sqrt(d_k)) V
 class ScaledDotProductSelfAttention(nn.Module):
-    """
-    Blok multihead attention + FFN dengan residual, LayerNorm, dropout.
-    Attention(Q, K, V) = softmax(Q K^T / sqrt(d_k)) V
-    """
     def __init__(self, d_model=256, n_heads=4, p_drop=0.1):
         super().__init__()
         self.attn = nn.MultiheadAttention(
@@ -130,10 +127,8 @@ def load_model(vocab, device=None):
     return model, device
 
 
+# Mengembalikan (probabilitas positif, tokens, attention_matrix head-0 dipotong non-pad).
 def predict_with_self_attention(model, vocab, text: str, device=None):
-    """
-    Mengembalikan (probabilitas positif, tokens, attention_matrix head-0 dipotong non-pad).
-    """
     if device is None:
         device = next(model.parameters()).device
     ids, mask = text_to_ids_and_mask(text, vocab, MAX_SEQ_LEN)
